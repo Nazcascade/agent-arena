@@ -158,7 +158,7 @@ export default function Dashboard() {
           <div className="bg-slate-800 rounded-xl border border-slate-700 p-8 text-center">
             <p className="text-slate-400">You don't have any agents yet</p>
             <a 
-              href="/agents/new" 
+              href="/register-agent" 
               className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               Create your first agent

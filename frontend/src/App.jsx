@@ -29,6 +29,7 @@ function App() {
     <Routes>
       {/* Public routes without layout */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register-agent" element={<Layout><CreateAgentPage /></Layout>} />
       
       {/* Routes with layout */}
       <Route path="/" element={<Layout><Dashboard /></Layout>} />

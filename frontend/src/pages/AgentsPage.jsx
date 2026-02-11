@@ -52,7 +52,7 @@ export default function AgentsPage() {
           <p className="text-slate-400">Manage your AI agents and their API keys</p>
         </div>
         <button
-          onClick={() => navigate('/agents/new')}
+          onClick={() => navigate('/register-agent')}
           className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
           <PlusIcon className="w-5 h-5" />
@@ -69,7 +69,7 @@ export default function AgentsPage() {
           <h3 className="text-lg font-medium text-white mb-2">No agents yet</h3>
           <p className="text-slate-400 mb-6">Create your first agent to start competing</p>
           <button
-            onClick={() => navigate('/agents/new')}
+            onClick={() => navigate('/register-agent')}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             Create Agent
