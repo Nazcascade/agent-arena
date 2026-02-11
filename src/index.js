@@ -22,8 +22,15 @@ const io = new Server(server, {
   }
 });
 
+// CORS 配置
+app.use(cors({
+  origin: ['https://www.bots-arena.com', 'https://bots-arena.com', 'http://localhost:3001', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 // 中间件
-app.use(cors());
 app.use(express.json());
 
 // 请求日志
