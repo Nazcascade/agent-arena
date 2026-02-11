@@ -41,6 +41,12 @@ app.use('/api/simple', require('./routes/simple'));
 // Agent 专用路由 (需要认证)
 app.use('/api/agent', agentAuth, require('./routes/agent'));
 
+// 文档页面
+const path = require('path');
+app.get('/docs', (req, res) => {
+  res.sendFile(path.join(__dirname, '../docs/index.html'));
+});
+
 // 健康检查 - 快速响应，不阻塞启动
 app.get('/health', async (req, res) => {
   try {
