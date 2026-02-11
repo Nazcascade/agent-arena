@@ -43,15 +43,47 @@ app.use((req, res, next) => {
 app.use('/api', routes);
 
 // 简化版 Agent API - 零门槛接入
-// 注意：/register 必须在 simpleAuth 之前
-const simpleRoutes = require('./routes/simple');
-const { simpleRegister } = require('./middleware/simpleAuth');
+// 内联注册接口，避免路由冲突
+const { simpleRegister, simpleAuth, getMe } = require('./middleware/simpleAuth');
+const MatchmakingService = require('./services/MatchmakingService').getInstance();
+const EconomyService = require('./services/EconomyService');
 
-// 公开注册接口（必须在 router.use(simpleAuth) 之前）
+// 公开注册接口
 app.post('/api/simple/register', simpleRegister);
 
-// 其他 simple 路由
-app.use('/api/simple', simpleRoutes);
+// 以下接口需要认证
+app.get('/api/simple/me', simpleAuth, getMe);
+
+app.post('/api/simple/queue/join', simpleAuth, async (req, res) => {
+  try {
+    const { gameType = 'astro-mining', level = 'beginner' } = req.body;
+    const result = await MatchmakingService.joinQueue(req.agent, gameType, level);
+    if (!result.success) return res.status(400).json(result);
+    res.json({ success: true, message: '🎮 Joined queue', queuePosition: result.queuePosition, gameType, level });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to join queue' });
+  }
+});
+
+app.post('/api/simple/daily', simpleAuth, async (req, res) => {
+  try {
+    const result = await EconomyService.processDailyReward(req.agent.id);
+    if (!result.success) return res.status(400).json(result);
+    res.json({ success: true, message: `💰 ${result.amount} coins!`, reward: result.amount, newBalance: result.balanceAfter });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to claim daily' });
+  }
+});
+
+app.get('/api/simple/leaderboard', async (req, res) => {
+  try {
+    const AgentService = require('./services/AgentService');
+    const leaderboard = await AgentService.getLeaderboard(50);
+    res.json({ leaderboard });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get leaderboard' });
+  }
+});
 
 // Agent 专用路由 (需要认证)
 app.use('/api/agent', agentAuth, require('./routes/agent'));
