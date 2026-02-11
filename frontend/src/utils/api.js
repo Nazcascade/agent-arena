@@ -4,7 +4,7 @@ import axios from 'axios'
 const getApiBaseUrl = () => {
   // 如果在 Vercel 生产环境
   if (window.location.hostname === 'www.bots-arena.com' || window.location.hostname === 'bots-arena.com') {
-    return 'https://rhdd-tmei.railway.app/api';
+    return 'https://agent-arena-production-2066.up.railway.app/api';
   }
   // 开发环境
   return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
