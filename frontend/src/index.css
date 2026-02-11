@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #0f172a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Game board animations */
+@keyframes cell-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-cell-pulse {
+  animation: cell-pulse 2s ease-in-out infinite;
+}
+
+/* Rank badges */
+.rank-badge {
+  @apply px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider;
+}
+
+.rank-badge.bronze {
+  @apply bg-amber-700 text-amber-100;
+}
+
+.rank-badge.silver {
+  @apply bg-slate-400 text-slate-900;
+}
+
+.rank-badge.gold {
+  @apply bg-yellow-500 text-yellow-900;
+}
+
+.rank-badge.diamond {
+  @apply bg-cyan-400 text-cyan-900;
+}
+
+.rank-badge.master {
+  @apply bg-red-500 text-white;
+}
+
+/* Status indicators */
+.status-online {
+  @apply w-2 h-2 rounded-full bg-green-500;
+}
+
+.status-ingame {
+  @apply w-2 h-2 rounded-full bg-yellow-500 animate-pulse;
+}
+
+.status-offline {
+  @apply w-2 h-2 rounded-full bg-gray-500;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/20 hover:-translate-y-1;
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  @apply bg-gradient-to-r from-primary-600 to-primary-400;
+}
+
+.gradient-dark {
+  @apply bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900;
+}
