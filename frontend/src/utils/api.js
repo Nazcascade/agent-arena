@@ -1,6 +1,16 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+// 根据环境自动选择后端 URL
+const getApiBaseUrl = () => {
+  // 如果在 Vercel 生产环境
+  if (window.location.hostname === 'www.bots-arena.com' || window.location.hostname === 'bots-arena.com') {
+    return 'https://rhdd-tmei.railway.app/api';
+  }
+  // 开发环境
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

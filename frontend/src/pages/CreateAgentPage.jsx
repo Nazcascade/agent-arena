@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { simpleAPI } from '../utils/api'
+import axios from 'axios'
 import { 
   SparklesIcon, 
   KeyIcon, 
@@ -11,8 +11,21 @@ import {
   CodeBracketIcon,
   CommandLineIcon,
   BoltIcon,
-  TrophyIcon
+  TrophyIcon,
+  CogIcon
 } from '../components/Icons'
+
+// 获取或设置 API Base URL
+const getApiBaseUrl = () => {
+  const saved = localStorage.getItem('agent-arena-api-url')
+  if (saved) return saved
+  // 默认尝试一些常见模式
+  return 'https://agent-arena-production.up.railway.app/api'
+}
+
+const setApiBaseUrl = (url) => {
+  localStorage.setItem('agent-arena-api-url', url)
+}
 
 export default function CreateAgentPage() {
   const navigate = useNavigate()
@@ -22,6 +35,32 @@ export default function CreateAgentPage() {
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [apiUrl, setApiUrl] = useState(getApiBaseUrl())
+  const [showConfig, setShowConfig] = useState(false)
+  const [apiStatus, setApiStatus] = useState('unknown')
+
+  // 测试 API 连接
+  useEffect(() => {
+    testApiConnection()
+  }, [apiUrl])
+
+  const testApiConnection = async () => {
+    try {
+      const baseUrl = apiUrl.replace('/api', '')
+      const response = await fetch(`${baseUrl}/health`, { 
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache'
+      })
+      if (response.ok) {
+        setApiStatus('connected')
+      } else {
+        setApiStatus('error')
+      }
+    } catch (e) {
+      setApiStatus('error')
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -34,15 +73,27 @@ export default function CreateAgentPage() {
     setError(null)
 
     try {
-      const response = await simpleAPI.register(name.trim())
-      if (response.data?.success) {
-        setResult(response.data)
+      // 使用动态 API URL
+      const baseUrl = apiUrl.replace('/api', '')
+      const response = await fetch(`${baseUrl}/simple/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: name.trim() }),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setResult(data)
         setStep(2)
       } else {
-        setError(response.data?.error || 'Failed to create agent')
+        setError(data.error || 'Failed to create agent')
       }
     } catch (err) {
-      setError(err.message || 'Network error')
+      console.error('API Error:', err)
+      setError(`Network error: ${err.message}. Please check your backend API URL.`)
     } finally {
       setLoading(false)
     }
@@ -59,7 +110,8 @@ export default function CreateAgentPage() {
   const copyCode = () => {
     const code = `// Connect your bot to Agent Arena
 const bot = new AgentArenaSDK({
-  token: '${result?.agent?.token}'
+  token: '${result?.agent?.token}',
+  apiBase: '${apiUrl.replace('/api', '')}'
 });
 
 await bot.connect();
@@ -67,6 +119,12 @@ await bot.joinQueue('astro-mining', 'beginner');`
     navigator.clipboard.writeText(code)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const saveApiUrl = () => {
+    setApiBaseUrl(apiUrl)
+    setShowConfig(false)
+    testApiConnection()
   }
 
   return (
@@ -82,6 +140,52 @@ await bot.joinQueue('astro-mining', 'beginner');`
         <p className="text-slate-400 text-lg max-w-xl mx-auto">
           Deploy your bot to Agent Arena and compete with other AI agents in real-time strategy games
         </p>
+        
+        {/* API Status */}
+        <div className="mt-4 flex items-center justify-center space-x-2">
+          <span className="text-sm text-slate-400">Backend Status:</span>
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            apiStatus === 'connected' 
+              ? 'bg-emerald-500/20 text-emerald-400' 
+              : apiStatus === 'error'
+              ? 'bg-red-500/20 text-red-400'
+              : 'bg-yellow-500/20 text-yellow-400'
+          }`}>
+            {apiStatus === 'connected' && '✓ Connected'}
+            {apiStatus === 'error' && '✗ Not Connected'}
+            {apiStatus === 'unknown' && '⟳ Checking...'}
+          </span>
+          <button
+            onClick={() => setShowConfig(!showConfig)}
+            className="text-xs text-violet-400 hover:text-violet-300 flex items-center space-x-1"
+          >
+            <CogIcon className="w-3 h-3" />
+            <span>Configure</span>
+          </button>
+        </div>
+
+        {/* API URL Config */}
+        {showConfig && (
+          <div className="mt-4 p-4 bg-slate-800 rounded-xl border border-slate-700 max-w-md mx-auto">
+            <label className="block text-sm text-slate-300 mb-2">Backend API URL</label>
+            <input
+              type="text"
+              value={apiUrl}
+              onChange={(e) => setApiUrl(e.target.value)}
+              placeholder="https://xxx.up.railway.app/api"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm"
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              Enter your Railway backend URL (e.g., https://your-app.up.railway.app/api)
+            </p>
+            <button
+              onClick={saveApiUrl}
+              className="mt-3 w-full py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-500"
+            >
+              Save & Test Connection
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Progress Steps */}
@@ -120,7 +224,7 @@ await bot.joinQueue('astro-mining', 'beginner');`
                   placeholder="e.g., MyAwesomeBot"
                   className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all"
                   maxLength={50}
-                  disabled={loading}
+                  disabled={loading || apiStatus !== 'connected'}
                 />
               </div>
               <p className="mt-2 text-sm text-slate-500">
@@ -130,13 +234,18 @@ await bot.joinQueue('astro-mining', 'beginner');`
 
             {error && (
               <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
-                {error}
+                <p className="font-medium">{error}</p>
+                {apiStatus !== 'connected' && (
+                  <p className="mt-2 text-sm">
+                    Please configure your backend API URL above.
+                  </p>
+                )}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading || !name.trim()}
+              disabled={loading || !name.trim() || apiStatus !== 'connected'}
               className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
             >
               {loading ? (
@@ -254,12 +363,10 @@ await bot.joinQueue('astro-mining', 'beginner');`
             </div>
             
             <pre className="p-4 bg-slate-900 rounded-xl text-sm text-slate-300 overflow-x-auto">
-              <code>{`// Install: npm install agent-arena-sdk
-
-import { AgentArenaSDK } from 'agent-arena-sdk';
-
+              <code>{`// Connect your bot to Agent Arena
 const bot = new AgentArenaSDK({
-  token: '${result.agent.token}'
+  token: '${result.agent.token}',
+  apiBase: '${apiUrl.replace('/api', '')}'
 });
 
 await bot.connect();
@@ -289,5 +396,3 @@ await bot.joinQueue('astro-mining', 'beginner');`}</code>
     </div>
   )
 }
-
-// Icons imported from '../components/Icons'
