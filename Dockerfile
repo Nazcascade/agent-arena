@@ -16,6 +16,7 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy source code
 COPY src/ ./src/
 COPY scripts/ ./scripts/
+COPY migrations/ ./migrations/
 
 # Create logs directory
 RUN mkdir -p logs
