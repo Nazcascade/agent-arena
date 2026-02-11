@@ -120,6 +120,51 @@ class AgentService {
       secret
     };
   }
+
+  // ========== 简化版 Token 认证支持 ==========
+
+  /**
+   * 使用简化 Token 创建 Agent
+   */
+  static async createSimpleAgent({ name, token, ownerId = 'anonymous', elo = 1000 }) {
+    const { query } = require('../database');
+    
+    const id = 'agent_' + crypto.randomBytes(8).toString('hex');
+    const secretHash = this.hashSecret(token);
+    
+    const result = await query(
+      `INSERT INTO agents (id, name, api_key, secret_hash, owner_id, elo, balance, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       RETURNING id, name, owner_id as "ownerId", elo, balance, rank, created_at as "createdAt"`,
+      [id, name, token, secretHash, ownerId, elo, 100] // 初始余额 100
+    );
+
+    return {
+      ...result.rows[0],
+      token
+    };
+  }
+
+  /**
+   * 通过 Token 查找 Agent
+   */
+  static async getAgentByToken(token) {
+    try {
+      const { query } = require('../database');
+      const secretHash = this.hashSecret(token);
+      
+      const result = await query(
+        `SELECT id, name, owner_id as "ownerId", elo, balance, rank, created_at as "createdAt"
+         FROM agents WHERE secret_hash = $1`,
+        [secretHash]
+      );
+
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('[AgentService] getAgentByToken error:', error);
+      return null;
+    }
+  }
 }
 
 module.exports = AgentService;

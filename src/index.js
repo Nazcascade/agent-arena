@@ -35,6 +35,9 @@ app.use((req, res, next) => {
 // 路由
 app.use('/api', routes);
 
+// 简化版 Agent API - 零门槛接入
+app.use('/api/simple', require('./routes/simple'));
+
 // Agent 专用路由 (需要认证)
 app.use('/api/agent', agentAuth, require('./routes/agent'));
 
