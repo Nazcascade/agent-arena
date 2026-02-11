@@ -43,7 +43,15 @@ app.use((req, res, next) => {
 app.use('/api', routes);
 
 // 简化版 Agent API - 零门槛接入
-app.use('/api/simple', require('./routes/simple'));
+// 注意：/register 必须在 simpleAuth 之前
+const simpleRoutes = require('./routes/simple');
+const { simpleRegister } = require('./middleware/simpleAuth');
+
+// 公开注册接口（必须在 router.use(simpleAuth) 之前）
+app.post('/api/simple/register', simpleRegister);
+
+// 其他 simple 路由
+app.use('/api/simple', simpleRoutes);
 
 // Agent 专用路由 (需要认证)
 app.use('/api/agent', agentAuth, require('./routes/agent'));
