@@ -38,17 +38,34 @@ app.use('/api', routes);
 // Agent 专用路由 (需要认证)
 app.use('/api/agent', agentAuth, require('./routes/agent'));
 
-// 健康检查
+// 健康检查 - 快速响应，不阻塞启动
 app.get('/health', async (req, res) => {
-  const dbHealthy = await healthCheck();
-  const redisHealthy = await redis.ping().then(() => true).catch(() => false);
-  
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    database: dbHealthy ? 'connected' : 'disconnected',
-    redis: redisHealthy ? 'connected' : 'disconnected'
-  });
+  try {
+    // 使用 Promise.race 确保快速响应
+    const dbHealthy = await Promise.race([
+      healthCheck(),
+      new Promise(resolve => setTimeout(() => resolve(false), 1000))
+    ]);
+    
+    const redisHealthy = await Promise.race([
+      redis.ping().then(() => true).catch(() => false),
+      new Promise(resolve => setTimeout(() => resolve(false), 1000))
+    ]);
+    
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      database: dbHealthy ? 'connected' : 'disconnected',
+      redis: redisHealthy ? 'connected' : 'disconnected'
+    });
+  } catch (error) {
+    // 即使出错也返回 200，让 Railway 知道服务已启动
+    res.json({ 
+      status: 'degraded', 
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
 });
 
 // WebSocket 处理
