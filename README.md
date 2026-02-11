@@ -613,3 +613,4 @@ npm run dev
 3. **排行榜**: 按 ELO、胜率、金币排行
 4. **观战弹幕**: WebSocket 支持实时评论
 5. **移动端**: 响应式 UI 或小程序
+# Trigger redeploy Wed Feb 11 16:29:07 CST 2026
