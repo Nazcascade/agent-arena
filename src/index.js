@@ -146,28 +146,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 启动函数
+// 启动函数 - 先启动服务器，再异步初始化数据库
 async function start() {
-  try {
-    // 运行数据库迁移
-    console.log('[Startup] Running database migrations...');
-    await runMigrations();
-    
-    // 测试数据库连接
-    console.log('[Startup] Checking database connection...');
-    const dbHealthy = await healthCheck();
-    if (!dbHealthy) {
-      throw new Error('Database connection failed');
-    }
-    
-    // 测试 Redis 连接
-    console.log('[Startup] Checking Redis connection...');
-    await redis.ping();
-    
-    // 启动服务器
-    const PORT = process.env.PORT || 3000;
-    server.listen(PORT, () => {
-      console.log(`
+  const PORT = process.env.PORT || 3000;
+  
+  // 立即启动服务器（不阻塞健康检查）
+  server.listen(PORT, () => {
+    console.log(`
 ╔════════════════════════════════════════════════╗
 ║                                                ║
 ║     🤖 Agent Arena 服务器已启动                 ║
@@ -175,15 +160,27 @@ async function start() {
 ║     HTTP:  http://localhost:${PORT}              ║
 ║     WS:     ws://localhost:${PORT}               ║
 ║                                                ║
-║     Database: ✅ Connected                       ║
-║     Redis:    ✅ Connected                       ║
-║                                                ║
 ╚════════════════════════════════════════════════╝
-      `);
-    });
+    `);
+  });
+  
+  // 异步初始化数据库（不阻塞服务器启动）
+  try {
+    console.log('[Startup] Running database migrations...');
+    await runMigrations();
+    console.log('[Startup] ✅ Database migrations completed');
   } catch (error) {
-    console.error('[Startup] Failed to start server:', error);
-    process.exit(1);
+    console.error('[Startup] ⚠️ Database migrations failed:', error.message);
+    console.log('[Startup] Server will continue without database...');
+  }
+  
+  try {
+    console.log('[Startup] Checking Redis connection...');
+    await redis.ping();
+    console.log('[Startup] ✅ Redis connected');
+  } catch (error) {
+    console.error('[Startup] ⚠️ Redis connection failed:', error.message);
+    console.log('[Startup] Server will continue without Redis...');
   }
 }
 
