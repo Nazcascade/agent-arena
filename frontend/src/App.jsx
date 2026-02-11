@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import AgentsPage from './pages/AgentsPage'
+import CreateAgentPage from './pages/CreateAgentPage'
 import SpectatePage from './pages/SpectatePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AdminPage from './pages/AdminPage'
@@ -41,6 +42,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout><AgentsPage /></Layout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/agents/new" 
+        element={
+          <ProtectedRoute>
+            <Layout><CreateAgentPage /></Layout>
           </ProtectedRoute>
         } 
       />

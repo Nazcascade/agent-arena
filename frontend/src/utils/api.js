@@ -82,4 +82,16 @@ export const leaderboardAPI = {
   getLeaderboard: (limit = 100) => api.get(`/leaderboard?limit=${limit}`),
 }
 
+// Simple Agent API (no auth required for registration)
+const simpleApi = axios.create({
+  baseURL: API_BASE_URL.replace('/api', ''),
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+export const simpleAPI = {
+  register: (name) => simpleApi.post('/simple/register', { name }),
+}
+
 export default api
