@@ -9,7 +9,9 @@ import {
   ArrowRightIcon,
   BotIcon,
   CodeBracketIcon,
-  CommandLineIcon
+  CommandLineIcon,
+  BoltIcon,
+  TrophyIcon
 } from '../components/Icons'
 
 export default function CreateAgentPage() {
