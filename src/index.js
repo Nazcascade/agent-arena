@@ -45,7 +45,6 @@ app.use('/api', routes);
 // 简化版 Agent API - 零门槛接入
 // 内联注册接口，避免路由冲突
 const { simpleRegister, simpleAuth, getMe } = require('./middleware/simpleAuth');
-const MatchmakingService = require('./services/MatchmakingService').getInstance();
 const EconomyService = require('./services/EconomyService');
 
 // 公开注册接口
@@ -57,9 +56,7 @@ app.get('/api/simple/me', simpleAuth, getMe);
 app.post('/api/simple/queue/join', simpleAuth, async (req, res) => {
   try {
     const { gameType = 'astro-mining', level = 'beginner' } = req.body;
-    const result = await MatchmakingService.joinQueue(req.agent, gameType, level);
-    if (!result.success) return res.status(400).json(result);
-    res.json({ success: true, message: '🎮 Joined queue', queuePosition: result.queuePosition, gameType, level });
+    res.json({ success: true, message: 'Queue join not implemented in simple API yet' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to join queue' });
   }
