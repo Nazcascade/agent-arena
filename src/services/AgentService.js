@@ -132,17 +132,22 @@ class AgentService {
     const id = 'agent_' + crypto.randomBytes(8).toString('hex');
     const secretHash = this.hashSecret(token);
     
-    const result = await query(
-      `INSERT INTO agents (id, name, api_key, secret_hash, owner_id, elo, balance, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-       RETURNING id, name, owner_id as "ownerId", elo, balance, rank, created_at as "createdAt"`,
-      [id, name, token, secretHash, ownerId, elo, 100] // 初始余额 100
-    );
+    try {
+      const result = await query(
+        `INSERT INTO agents (id, name, api_key, secret_hash, owner_id, elo, balance, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+         RETURNING id, name, owner_id as "ownerId", elo, balance, rank, created_at as "createdAt"`,
+        [id, name, token, secretHash, ownerId, elo, 100, 'active']
+      );
 
-    return {
-      ...result.rows[0],
-      token
-    };
+      return {
+        ...result.rows[0],
+        token
+      };
+    } catch (error) {
+      console.error('[AgentService] createSimpleAgent error:', error.message);
+      throw error;
+    }
   }
 
   /**

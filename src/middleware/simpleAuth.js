@@ -56,7 +56,11 @@ async function simpleRegister(req, res) {
     });
   } catch (error) {
     console.error('[SimpleAuth] Register error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ 
+      error: 'Registration failed', 
+      details: error.message,
+      hint: 'Database may need migration. Run: npm run db:migrate'
+    });
   }
 }
 
