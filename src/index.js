@@ -206,17 +206,7 @@ app.use((err, req, res, next) => {
 async function start() {
   const PORT = process.env.PORT || 3000;
   
-  // 先运行数据库迁移（阻塞启动直到完成）
-  try {
-    console.log('[Startup] Running database migrations...');
-    await runMigrations();
-    console.log('[Startup] ✅ Database migrations completed');
-  } catch (error) {
-    console.error('[Startup] ⚠️ Database migrations failed:', error.message);
-    console.log('[Startup] Continuing anyway...');
-  }
-  
-  // 立即启动服务器
+  // 立即启动服务器（不阻塞）
   server.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════════╗
@@ -230,15 +220,27 @@ async function start() {
     `);
   });
   
+  // 异步运行数据库迁移（不阻塞服务器启动）
+  setTimeout(async () => {
+    try {
+      console.log('[Startup] Running database migrations...');
+      await runMigrations();
+      console.log('[Startup] ✅ Database migrations completed');
+    } catch (error) {
+      console.error('[Startup] ⚠️ Database migrations failed:', error.message);
+    }
+  }, 1000);
+  
   // 异步检查 Redis
-  try {
-    console.log('[Startup] Checking Redis connection...');
-    await redis.ping();
-    console.log('[Startup] ✅ Redis connected');
-  } catch (error) {
-    console.error('[Startup] ⚠️ Redis connection failed:', error.message);
-    console.log('[Startup] Server will continue without Redis...');
-  }
+  setTimeout(async () => {
+    try {
+      console.log('[Startup] Checking Redis connection...');
+      await redis.ping();
+      console.log('[Startup] ✅ Redis connected');
+    } catch (error) {
+      console.error('[Startup] ⚠️ Redis connection failed:', error.message);
+    }
+  }, 2000);
 }
 
 // 优雅关闭
