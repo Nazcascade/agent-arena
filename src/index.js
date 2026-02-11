@@ -10,7 +10,7 @@ const { Server } = require('socket.io');
 const routes = require('./routes');
 const { agentAuth } = require('./middleware/agentAuth');
 const MatchmakingService = require('./services/MatchmakingService').getInstance();
-const { healthCheck, runMigrations } = require('./database');
+const { healthCheck, runMigrations } = require('./database/index');
 const redis = require('./redis');
 
 const app = express();
